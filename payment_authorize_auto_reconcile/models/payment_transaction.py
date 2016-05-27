@@ -33,19 +33,14 @@ class PaymentTransaction(models.Model):
     def _authorize_form_get_tx_from_data(self, data):
         """ Overload original method to create transaction if none exists """
 
-        try:
-            return super(PaymentTransaction, self).\
-                _authorize_form_get_tx_from_data(data)
-        except ValidationError as original_error:
-            pass
-
         reference = data.get('x_invoice_num')
         trans_id = data.get('x_trans_id', 0)
         fingerprint = data.get('x_MD5_Hash')
         pay_amount = float(data.get('x_amount'))
 
         if not reference or not trans_id or not fingerprint:
-            raise original_error
+            return super(PaymentTransaction, self).\
+                _authorize_form_get_tx_from_data(data)
 
         tx = self.search([
             ('reference', '=like', '%s%%' % reference),
@@ -53,6 +48,10 @@ class PaymentTransaction(models.Model):
             ('amount', '=', pay_amount),
         ])
 
+        if len(tx) > 1:
+            return super(PaymentTransaction, self).\
+                _authorize_form_get_tx_from_data(data)
+        
         if not tx:
             invoice_id = self.env['account.invoice'].search([
                 ('number', '=', reference)
@@ -70,16 +69,10 @@ class PaymentTransaction(models.Model):
                 'currency_id': invoice_id.currency_id.id,
                 'partner_id': invoice_id.partner_id.id,
                 'partner_country_id': invoice_id.partner_id.country_id.id,
-                'account_id': invoice_id.account_id.id,
-                'partner_state': data.get('x_state'),
                 'partner_city': data.get('x_city'),
-                'partner_street': data.get('x_address'),
             }
             _logger.debug('Creating tx with %s', tx_vals)
             tx = self.create(tx_vals)
-
-        elif len(tx) > 1:
-            raise original_error
 
         return tx
 
@@ -106,7 +99,7 @@ class PaymentTransaction(models.Model):
                 partner_id = invoice_id.partner_id
                 if partner_id.parent_id:
                     partner_id = partner_id.parent_id
-                account_id = partner_id.property_account_receivable.id
+                account_id = partner_id.property_account_receivable
                 voucher_id = self.env['account.voucher'].create({
                     'name': name,
                     'amount': pay_amount,
