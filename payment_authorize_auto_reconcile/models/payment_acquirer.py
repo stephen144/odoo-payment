@@ -7,8 +7,9 @@ from openerp import models, fields
 
 class PaymentAcquirer(models.Model):
     _inherit = 'payment.acquirer'
+
     journal_id = fields.Many2one(
-        string='Pay To Account',
+        string='Payment Method',
         comodel_name='account.journal',
         domain=[('type', 'in', ['bank', ])],
         default=lambda s: s._default_journal_id(),
