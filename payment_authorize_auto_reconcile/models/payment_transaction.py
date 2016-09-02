@@ -23,14 +23,18 @@ class PaymentTransaction(models.Model):
             ], limit=1)
             if not invoice_id:
                 return res
-            self.env.with_context(default_invoice_ids=[(4, invoice_id, False)])
+
             partner_id = invoice_id.partner_id
             if partner_id.commercial_partner_id:
                 partner_id = partner_id.commercial_partner_id            
             acquirer_id = tx.acquirer_id
             pay_amount = float(data.get('x_amount'))
             trans_id = data.get('x_trans_id', 0) #todo: put somewhere            
-            payment_id = self.env['account.payment'].create({
+
+            AccountPayment = self.env['account.payment'].with_context(
+                default_invoice_ids=[(4, invoice_id.id, False)]
+            )
+            payment_id = AccountPayment.create({
                 'communication': reference,
                 'currency_id': invoice_id.currency_id.id, #todo: make sure is USD
                 'partner_type': 'customer',
