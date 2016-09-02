@@ -11,16 +11,7 @@ class PaymentAcquirer(models.Model):
     journal_id = fields.Many2one(
         string='Payment Method',
         comodel_name='account.journal',
-        domain=[('type', 'in', ['bank', ])],
-        default=lambda s: s._default_journal_id(),
+        domain=[('type', '=', 'bank')],
     )
 
-    def _default_journal_id(self, ):
-        try:
-            return self.company_id.bank_journal_ids[0]
-        except AttributeError:
-            return self.env['account.journal'].search([
-                ('company_id', '=', self.company_id.id),
-                ('type', 'in', ['bank', ])
-            ],
-                limit=1,)
+

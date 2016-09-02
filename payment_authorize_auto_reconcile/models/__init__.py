@@ -18,5 +18,5 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 ##############################################################################
-from . import payment_transaction
-from . import payment_acquirer
+import payment_transaction
+import payment_acquirer

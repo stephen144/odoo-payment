@@ -30,7 +30,7 @@ class PaymentTransaction(models.Model):
             acquirer_id = tx.acquirer_id
             pay_amount = float(data.get('x_amount'))
             trans_id = data.get('x_trans_id', 0) #todo: put somewhere            
-            payment = self.env['account.payment'.create({
+            payment_id = self.env['account.payment'].create({
                 'communication': reference,
                 'currency_id': invoice_id.currency_id.id, #todo: make sure is USD
                 'partner_type': 'customer',
@@ -43,5 +43,5 @@ class PaymentTransaction(models.Model):
                 'writeoff_account_id': False,
                 'payment_type': 'inbound',
             })
-            payment.post()  
+            payment_id.post()  
         return res
